@@ -1,0 +1,236 @@
+-- BRUNONTX V1 + LKZ SPEED INTEGRADO
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local p = game.Players.LocalPlayer
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+local Title = Instance.new("TextLabel")
+local CloseBtn = Instance.new("TextButton")
+local MinimizeBtn = Instance.new("TextButton")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Configurações de Interface
+local FrameSizeFull = UDim2.new(0, 340, 0, 400) 
+local FrameSizeMin = UDim2.new(0, 340, 0, 45)
+
+pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
+if not ScreenGui.Parent then ScreenGui.Parent = p:WaitForChild("PlayerGui") end
+
+ScreenGui.Name = "BrunontxV1"
+
+-- Janela Principal
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.Position = UDim2.new(0.35, 0, 0.2, 0)
+MainFrame.Size = FrameSizeFull
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.ClipsDescendants = true
+local MainCorner = Instance.new("UICorner", MainFrame)
+MainCorner.CornerRadius = UDim.new(0, 15)
+
+-- Borda com Gradiente Animado
+local Stroke = Instance.new("UIStroke", MainFrame)
+Stroke.Thickness = 4
+Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+local StrokeGradient = Instance.new("UIGradient", Stroke)
+StrokeGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+})
+
+-- Título Atualizado: BRUNONTX V1
+Title.Parent = MainFrame
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "👑 BRUNONTX V1 👑"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+Title.Font = Enum.Font.LuckiestGuy
+Title.BackgroundTransparency = 1
+
+-- Botão Fechar
+CloseBtn.Parent = MainFrame
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.Position = UDim2.new(0.88, 0, 0.025, 0)
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", CloseBtn)
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+-- Botão Minimizar
+MinimizeBtn.Parent = MainFrame
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+MinimizeBtn.Position = UDim2.new(0.75, 0, 0.025, 0)
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", MinimizeBtn)
+
+-- ScrollingFrame
+ScrollingFrame.Parent = MainFrame
+ScrollingFrame.Size = UDim2.new(1, 0, 0, 330)
+ScrollingFrame.Position = UDim2.new(0, 0, 0, 55)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.ScrollBarThickness = 2
+local UIList = Instance.new("UIListLayout", ScrollingFrame)
+UIList.Padding = UDim.new(0, 12)
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- Lógica Minimizar
+local isMinimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    local targetSize = isMinimized and FrameSizeMin or FrameSizeFull
+    TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quart), {Size = targetSize}):Play()
+    ScrollingFrame.Visible = not isMinimized
+    MinimizeBtn.Text = isMinimized and "+" or "-"
+end)
+
+--- [ SISTEMA DE VELOCIDADE E PULO ] ---
+
+local function AddSpeedPanel()
+    local Panel = Instance.new("Frame", ScrollingFrame)
+    Panel.Size = UDim2.new(0, 300, 0, 110)
+    Panel.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    Instance.new("UICorner", Panel)
+
+    local function CreateInput(pos, label, default)
+        local box = Instance.new("TextBox", Panel)
+        box.Size = UDim2.new(0, 80, 0, 30)
+        box.Position = pos
+        box.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+        box.Text = default
+        box.TextColor3 = Color3.new(1,1,1)
+        box.Font = Enum.Font.GothamBold
+        Instance.new("UICorner", box)
+        
+        local l = Instance.new("TextLabel", Panel)
+        l.Text = label
+        l.Size = UDim2.new(0, 80, 0, 20)
+        l.Position = UDim2.new(pos.X.Scale, pos.X.Offset, pos.Y.Scale, -20)
+        l.BackgroundTransparency = 1; l.TextColor3 = Color3.new(0.8, 0.8, 0.8); l.TextSize = 10; l.Font = Enum.Font.GothamBold
+        return box
+    end
+
+    local InNoSteal = CreateInput(UDim2.new(0.05, 0, 0.3, 0), "NO STEAL", "16")
+    local InSteal = CreateInput(UDim2.new(0.38, 0, 0.3, 0), "STEAL", "50")
+    local InJump = CreateInput(UDim2.new(0.7, 0, 0.3, 0), "JUMP", "50")
+
+    local SpeedBtn = Instance.new("TextButton", Panel)
+    SpeedBtn.Size = UDim2.new(0.45, 0, 0, 35)
+    SpeedBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
+    SpeedBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+    SpeedBtn.Text = "SPEED: OFF"
+    SpeedBtn.Font = Enum.Font.LuckiestGuy
+    SpeedBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", SpeedBtn)
+
+    local JumpBtn = Instance.new("TextButton", Panel)
+    JumpBtn.Size = UDim2.new(0.45, 0, 0, 35)
+    JumpBtn.Position = UDim2.new(0.5, 0, 0.65, 0)
+    JumpBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 180)
+    JumpBtn.Text = "JUMP: OFF"
+    JumpBtn.Font = Enum.Font.LuckiestGuy
+    JumpBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", JumpBtn)
+
+    local speedActive = false
+    local jumpActive = false
+    local speedConn
+    
+    SpeedBtn.MouseButton1Click:Connect(function()
+        speedActive = not speedActive
+        if speedActive then
+            SpeedBtn.Text = "SPEED: ON"; SpeedBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 60)
+            speedConn = RunService.Heartbeat:Connect(function()
+                local char = p.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                local hum = char and char:FindFirstChild("Humanoid")
+                if hrp and hum and hum.MoveDirection.Magnitude > 0 then
+                    local current = (hum.WalkSpeed < 25) and tonumber(InSteal.Text) or tonumber(InNoSteal.Text)
+                    hrp.AssemblyLinearVelocity = Vector3.new(hum.MoveDirection.X * current, hrp.AssemblyLinearVelocity.Y, hum.MoveDirection.Z * current)
+                end
+            end)
+        else
+            SpeedBtn.Text = "SPEED: OFF"; SpeedBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+            if speedConn then speedConn:Disconnect() end
+        end
+    end)
+
+    JumpBtn.MouseButton1Click:Connect(function()
+        jumpActive = not jumpActive
+        JumpBtn.Text = jumpActive and "JUMP: ON" or "JUMP: OFF"
+        JumpBtn.BackgroundColor3 = jumpActive and Color3.fromRGB(0, 180, 100) or Color3.fromRGB(0, 100, 180)
+    end)
+
+    UserInputService.JumpRequest:Connect(function()
+        if jumpActive and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            p.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(
+                p.Character.HumanoidRootPart.AssemblyLinearVelocity.X,
+                tonumber(InJump.Text) or 50,
+                p.Character.HumanoidRootPart.AssemblyLinearVelocity.Z
+            )
+        end
+    end)
+end
+
+local function AddAction(name, icon, callback)
+    local Frame = Instance.new("Frame", ScrollingFrame)
+    Frame.Size = UDim2.new(0, 300, 0, 50)
+    Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    Instance.new("UICorner", Frame)
+
+    local Lbl = Instance.new("TextLabel", Frame)
+    Lbl.Text = icon .. " " .. name
+    Lbl.Size = UDim2.new(0.6, 0, 1, 0); Lbl.Position = UDim2.new(0.05, 0, 0, 0); Lbl.TextColor3 = Color3.new(1,1,1); Lbl.BackgroundTransparency = 1; Lbl.Font = Enum.Font.GothamBold; Lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local Btn = Instance.new("TextButton", Frame)
+    Btn.Size = UDim2.new(0, 90, 0, 30); Btn.Position = UDim2.new(0.65, 0, 0.2, 0); Btn.BackgroundColor3 = Color3.fromRGB(255, 170, 0); Btn.Text = "ATIVA"; Btn.Font = Enum.Font.GothamBold; Instance.new("UICorner", Btn)
+
+    local active = false
+    Btn.MouseButton1Click:Connect(function()
+        active = not active
+        Btn.Text = active and "DESATIVA" or "ATIVA"
+        Btn.BackgroundColor3 = active and Color3.fromRGB(200, 50, 50) or Color3.fromRGB(255, 170, 0)
+        callback(active)
+    end)
+end
+
+-- --- INICIALIZAÇÃO ---
+AddSpeedPanel()
+
+local spinActive = false
+AddAction("HELI SPIN", "🚁", function(a) spinActive = a end)
+
+AddAction("ESP CAIXA", "⚔️", function(active)
+    if active then
+        for _, pl in pairs(game.Players:GetPlayers()) do
+            if pl ~= p and pl.Character then
+                local h = pl.Character:FindFirstChild("StelaHigh") or Instance.new("Highlight", pl.Character); h.Name = "StelaHigh"; h.FillColor = Color3.new(1, 0, 0)
+            end
+        end
+    else
+        for _, pl in pairs(game.Players:GetPlayers()) do
+            if pl.Character and pl.Character:FindFirstChild("StelaHigh") then pl.Character.StelaHigh:Destroy() end
+        end
+    end
+end)
+
+RunService.Heartbeat:Connect(function(dt)
+    StrokeGradient.Rotation = (StrokeGradient.Rotation + 120 * dt) % 360
+    if spinActive and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+        local root = p.Character.HumanoidRootPart
+        local b = root:FindFirstChild("StelaSpin") or Instance.new("BodyAngularVelocity", root)
+        b.Name = "StelaSpin"; b.MaxTorque = Vector3.new(0, math.huge, 0); b.AngularVelocity = Vector3.new(0, 45, 0)
+    elseif not spinActive and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+        local b = p.Character.HumanoidRootPart:FindFirstChild("StelaSpin")
+        if b then b:Destroy() end
+    end
+end)
+
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y + 20)
